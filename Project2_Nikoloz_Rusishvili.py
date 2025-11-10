@@ -44,7 +44,7 @@ def statistical_summary(df: pd.DataFrame, name_of_df):
     for column_name, dtype in columns_dtypes.items():
         print(f"Statistical Summary for column '{column_name}'")
         if dtype == 'object' or dtype == 'category':
-            print(df[column_name].describe(include='object'))
+            print(df[column_name].describe(include='object')) # type: ignore
             print(f"Unique value count: {df[column_name].nunique()}")
         else:
             print(df[column_name].describe())
