@@ -61,6 +61,20 @@ def data_quality_check(df: pd.DataFrame, name_of_df):
     print("====================================================================================================================")
     print(f"Duplicated rows for {name_of_df} data frame:")
     print(df[df.duplicated()])
+    print(f"Total number of duplicate rows: {df.duplicated().sum()}")
+    print("====================================================================================================================")
+    print(f"Identifying unusual values and patterns in {name_of_df} data frame:")
+    
+    for col in df.select_dtypes(include='object').columns:
+        print(f"\nUnique values in '{col}' column:")
+        print(df[col].value_counts())
+        print(f"  -> Check for inconsistent naming, formatting, or whitespace issues")
+    
+    for col in df.select_dtypes(include=['int64', 'float64']).columns:
+        print(f"\nValue range for '{col}' column:")
+        print(f"  Min: {df[col].min()}, Max: {df[col].max()}, Mean: {df[col].mean():.2f}")
+        print(f"  -> Check if min/max values seem realistic (negatives, outliers, etc.)")
+    
     print("====================================================================================================================")
 
 
