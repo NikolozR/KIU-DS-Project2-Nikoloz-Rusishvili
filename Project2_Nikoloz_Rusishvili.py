@@ -1,5 +1,7 @@
 import pandas as pd
 
+# Task 1: Start
+
 # Part A: Data Loading and Validation
 customers_df = pd.read_csv('data/original/customers.csv')
 print("Validating Customers CSV Reading...")
@@ -136,3 +138,5 @@ def transaction_analysis():
 customer_analysis()
 product_analysis()
 transaction_analysis()
+
+# Task 1: End
