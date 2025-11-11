@@ -140,3 +140,27 @@ product_analysis()
 transaction_analysis()
 
 # Task 1: End
+
+# Task 2: Start
+
+# Part A: Identify Data Quality Issues
+
+# Customers.csv
+print(customers_df[customers_df['email'].isna()]['customer_id'].tolist())
+print(customers_df[customers_df.duplicated()]['customer_id'].tolist())
+print(customers_df[pd.to_numeric(customers_df['age'], errors='coerce').isna()]['customer_id'].tolist())
+print(customers_df.query("country == 'US' or country == 'USA'")['customer_id'].tolist())
+'''
+    1. Missing Values
+        There are 20 missing values with email column, specifically these costumers:
+        ['C001', 'C003', 'C004', 'C006', 'C009', 'C024', 'C027', 'C033', 'C037', 'C071', 'C102', 'C103', 'C111', 'C134', 'C143', 'C150', 'C152', 'C163', 'C174', 'C192']
+    2. Duplicated Rows
+        There are 4 duplicated rows, specifically these costumers' rows:
+        ['C008', 'C115', 'C048', 'C114']
+    3. Inconsistent data types
+        There are 15 values in age column that are given in invalid type (XX years), specifically for these customers:
+        ['C010', 'C031', 'C053', 'C073', 'C083', 'C091', 'C103', 'C126', 'C129', 'C130', 'C133', 'C150', 'C198', 'C200', 'C034']
+    4. Inconsistent country names
+        For 'United States' case, 14 customer rows use "US" or "USA", specifically:
+        ['C026', 'C084', 'C092', 'C102', 'C115', 'C125', 'C145', 'C146', 'C157', 'C166', 'C172', 'C176', 'C183', 'C115']
+'''
