@@ -168,7 +168,7 @@ print(customers_df.query("country == 'US' or country == 'USA'")['customer_id'].t
 # Products.csv
 print(products_df[products_df['price'].isnull()]['product_id'].tolist())
 print(products_df.query("price < 0")['product_id'].tolist())
-print(products_df[products_df['product_name'].str.startswith(' ')]['product_id'].to_list())
+print(products_df[(products_df['product_name'].str.startswith(' ')) | (products_df['product_name'].str.endswith(' '))]['product_id'].to_list())
 print(products_df[products_df['category'].str.match(r'^[a-z]')]['product_id'].to_list())
 '''
     1. Missing Values
@@ -231,25 +231,26 @@ transactions_df_cleaned['quantity'] = transactions_df_cleaned['quantity'].fillna
 '''
 
 # Remove Duplicates
-customers_duplicate_removed = len(customers_df_cleaned[customers_df_cleaned.duplicated()].sum())
+customers_duplicate_removed = customers_df_cleaned.duplicated().sum()
 # We do not need keep="first" because it does that by default
 customers_df_cleaned = customers_df_cleaned.drop_duplicates()
-products_duplicate_removed = len(products_df_cleaned[products_df_cleaned.duplicated()].sum())
+products_duplicate_removed = products_df_cleaned.duplicated().sum()
 products_df_cleaned = products_df_cleaned.drop_duplicates()
-transactions_duplicate_removed = len(transactions_df_cleaned[transactions_df_cleaned.duplicated()].sum())
+transactions_duplicate_removed = transactions_df_cleaned.duplicated().sum()
 transactions_df_cleaned = transactions_df_cleaned.drop_duplicates()
 print(f'Found {customers_duplicate_removed} duplicates for customers. \nFound {products_duplicate_removed} duplicates for products. \nFound {transactions_duplicate_removed} duplicates for transactions.')
 
 # Fix Data Types
 print(customers_df_cleaned['age'])
 inconsistent_age_mask = pd.to_numeric(customers_df_cleaned['age'], errors='coerce').isna()
-customers_df_cleaned.loc[inconsistent_age_mask, 'age'] = customers_df_cleaned.loc[inconsistent_age_mask, 'age'].str.split(' ').str[0]
+customers_df_cleaned.loc[inconsistent_age_mask, 'age'] = pd.to_numeric(customers_df_cleaned.loc[inconsistent_age_mask, 'age'].str.split(' ').str[0])
+customers_df_cleaned['age'] = pd.to_numeric(customers_df_cleaned['age'])
 
 customers_df_cleaned['registration_date'] = pd.to_datetime(customers_df_cleaned['registration_date'])
 transactions_df_cleaned['transaction_date'] = pd.to_datetime(transactions_df_cleaned['transaction_date'])
 
-print(f"If everything is numeric in price this should be 0: {pd.to_numeric(transactions_df_cleaned['quantity'], errors='coerce').isna().sum()}")
-print(f"If everything is numeric in quantity this should be 0: {pd.to_numeric(products_df_cleaned['price'], errors='coerce').isna().sum()}")
+print(f"If everything is numeric in quantity this should be 0: {pd.to_numeric(transactions_df_cleaned['quantity'], errors='coerce').isna().sum()}")
+print(f"If everything is numeric in price this should be 0: {pd.to_numeric(products_df_cleaned['price'], errors='coerce').isna().sum()}")
 
 # Standardize Values
 customers_df_cleaned.loc[customers_df_cleaned.query('country == "US" or country == "USA"').index, 'country'] = "United States"
@@ -261,5 +262,8 @@ customers_df_cleaned['email'] = customers_df_cleaned['email'].str.lower()
 products_df_cleaned['price'] = products_df_cleaned['price'].abs()
 products_df_cleaned['stock'] = products_df_cleaned['stock'].clip(upper=500)
 transactions_df_cleaned = transactions_df_cleaned[~(transactions_df_cleaned['customer_id'].str[1:].astype(int) > 200)]
-transactions_df_cleaned = transactions_df_cleaned[~(pd.to_datetime(transactions_df['transaction_date']) > pd.Timestamp.today())]
+transactions_df_cleaned = transactions_df_cleaned[~(pd.to_datetime(transactions_df_cleaned['transaction_date']) > pd.Timestamp.today())]
 
+# It was not written in tasks but we need to do it:
+products_df_cleaned['category'] = products_df_cleaned['category'].str.capitalize()
+transactions_df_cleaned['payment_method'] = transactions_df_cleaned['payment_method'].str.title()
