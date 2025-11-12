@@ -241,11 +241,11 @@ transactions_df_cleaned['quantity'] = transactions_df_cleaned['quantity'].fillna
 # Remove Duplicates
 customers_duplicate_removed = customers_df_cleaned.duplicated().sum()
 # We do not need keep="first" because it does that by default
-customers_df_cleaned = customers_df_cleaned.drop_duplicates()
+customers_df_cleaned = customers_df_cleaned.drop_duplicates(subset='customer_id')
 products_duplicate_removed = products_df_cleaned.duplicated().sum()
-products_df_cleaned = products_df_cleaned.drop_duplicates()
+products_df_cleaned = products_df_cleaned.drop_duplicates(subset='product_id')
 transactions_duplicate_removed = transactions_df_cleaned.duplicated().sum()
-transactions_df_cleaned = transactions_df_cleaned.drop_duplicates()
+transactions_df_cleaned = transactions_df_cleaned.drop_duplicates(subset='transaction_id')
 print("====================================================================================================================")
 print(f'Found {customers_duplicate_removed} duplicates for customers. \nFound {products_duplicate_removed} duplicates for products. \nFound {transactions_duplicate_removed} duplicates for transactions.')
 print("====================================================================================================================")
@@ -380,3 +380,33 @@ products_df_cleaned.to_csv('data/cleaned/products_clean.csv', index=False)
 transactions_df_cleaned.to_csv('data/cleaned/transactions_clean.csv', index=False)
 # Task 2: End
 print("====================== TASK 2 END ======================")
+
+# We need to drop duplicates again, because some invalid and 
+
+# Task 3: Start
+print("====================== TASK 3 START ======================")
+
+# Part A
+
+# Create Complete Transaction View
+transactions_customers_merged = pd.merge(transactions_df_cleaned, customers_df_cleaned, on='customer_id', how='left')
+df = pd.merge(transactions_customers_merged, products_df_cleaned, on='product_id', how='left')
+# Chose left joins because we need to have all transactions (At least that is what I understood from task)
+
+# Handle Merge Issues
+print("Transactions that are unmatched with product: ")
+product_unmatched = df[df['product_name'].isna()]
+print(product_unmatched)
+print(f"Total: {len(product_unmatched)}")
+print("====================================================================================================================")
+print("Transactions that are unmatched with customer: ")
+customer_unmatched = df[df['email'].isna()]
+print(customer_unmatched)
+print(f"Total: {len(customer_unmatched)}")
+print("====================================================================================================================")
+print("No data loss because of Left join")
+print(f"Original Transaction row number: {len(transactions_df_cleaned)}")
+print(f"After Merge Transaction row number: {len(df)}")
+print("====================================================================================================================")
+
+
