@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 # Task 1: Start
 print("====================== TASK 1 START ======================")
@@ -457,3 +457,156 @@ def is_weekend(day):
     return day == "Saturday" or day == 'Sunday'
 
 df['is_weekend'] = df['transaction_day_of_week'].apply(is_weekend)
+
+# Part C: Advanced Analysis
+
+
+# Revenue Analysis
+print("Total Revenue by Product Category")
+category_revenue = df.groupby("category")['final_amount'].sum().sort_values(ascending=False)
+print(category_revenue)
+print("====================================================================================================================")
+
+print("Monthly Revenue Trend")
+df['transaction_month_num'] = df['transaction_date'].dt.month
+months_order = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December']
+monthly_revenue = df.groupby('transaction_month_num')['final_amount'].sum().sort_index()
+monthly_revenue.index = monthly_revenue.index.map(lambda x: months_order[x-1])
+print(monthly_revenue)
+print("Analysis: The data shows revenue trends across months.")
+print("Peak revenue months and seasonal patterns can be identified from this data.")
+
+# Optional: Uncomment to display the plot
+# plt.figure(figsize=(10,5))
+# monthly_revenue.plot(kind='line', marker='o', title='Monthly Revenue Trend')
+# plt.title('Monthly Revenue Trend')
+# plt.xlabel('Month')
+# plt.ylabel('Revenue ($)')
+# plt.grid(True)
+# plt.xticks(rotation=45)
+# plt.tight_layout()
+# plt.show()
+
+print("====================================================================================================================")
+
+print("Revenue by Country (Top 5)")
+top_5_country_revenue = df.groupby("country")['final_amount'].sum().nlargest(5)
+print(top_5_country_revenue)
+print("====================================================================================================================")
+
+print("Average Transaction Value by Payment Method")
+average_amount_by_payment_method = df.groupby("payment_method")['final_amount'].mean().sort_values(ascending=False)
+print(average_amount_by_payment_method)
+print("====================================================================================================================")
+
+# Customer Behavior
+
+print("Number of Purchases per Customer (Top 10)")
+top_10_customer_purchases = df.groupby("customer_id")['transaction_id'].count().nlargest(10)
+print(top_10_customer_purchases)
+print("====================================================================================================================")
+
+print("Average Spending by Age Group")
+avg_spending_by_age_group = df.groupby('age_group')['final_amount'].mean().sort_values(ascending=False)
+print(avg_spending_by_age_group)
+print("====================================================================================================================")
+
+print("Most Popular Product Category by Country")
+count_by_category_by_country = df.groupby(['country', 'category'])['transaction_id'].count()
+most_popular_category = count_by_category_by_country.groupby(level=0).idxmax()
+most_popular_category_clean = most_popular_category.apply(lambda x: x[1])
+print(most_popular_category_clean)
+print("====================================================================================================================")
+
+print("Weekend vs. Weekday Transaction Patterns")
+weekend_vs_weekday = df.groupby('is_weekend')['transaction_id'].count()
+weekend_vs_weekday.index = ['Weekday', 'Weekend'] # type: ignore
+print(weekend_vs_weekday)
+print(f"Percentage of Weekend Transactions: {(weekend_vs_weekday['Weekend'] / weekend_vs_weekday.sum() * 100):.2f}%")
+print(f"Percentage of Weekday Transactions: {(weekend_vs_weekday['Weekday'] / weekend_vs_weekday.sum() * 100):.2f}%")
+print("====================================================================================================================")
+
+# 3. Product Performance
+
+print("Top 10 Products by Revenue")
+top_10_product_by_revenue = df.groupby('product_id')['final_amount'].sum().nlargest(10)
+print(top_10_product_by_revenue)
+print("====================================================================================================================")
+
+print("Top 10 Products by Quantity Sold")
+top_10_product_by_quantity = df.groupby('product_id')['quantity'].sum().nlargest(10)
+print(top_10_product_by_quantity)
+print("====================================================================================================================")
+
+print("Category with Highest Average Transaction Value")
+highest_avg_value_category = df.groupby('category')['final_amount'].mean().sort_values(ascending=False)
+print(highest_avg_value_category)
+print(f"Highest: {highest_avg_value_category.index[0]} with average transaction value of ${highest_avg_value_category.iloc[0]:.2f}")
+print("====================================================================================================================")
+
+print("Slow-Moving Products (Low Sales)")
+product_sales = df.groupby('product_id').agg({
+    'transaction_id': 'count',
+    'quantity': 'sum',
+    'final_amount': 'sum'
+}).rename(columns={'transaction_id': 'num_transactions'})
+slow_moving = product_sales.nsmallest(10, 'num_transactions')
+print("Bottom 10 products by number of transactions:")
+print(slow_moving)
+print("====================================================================================================================")
+
+# Create Summary Tables
+
+print("Pivot Table: Category vs. Country (Total Revenue)")
+pivot_category_country = df.pivot_table(
+    values='final_amount',
+    index='category',
+    columns='country',
+    aggfunc='sum',
+    fill_value=0
+)
+print(pivot_category_country)
+print("====================================================================================================================")
+
+print("Cross-Tabulation: Age Group vs. Customer Segment")
+
+customer_summary = df.groupby('customer_id').agg({
+    'age_group': 'first',
+    'customer_segment': 'first'
+}).reset_index()
+
+crosstab_age_segment = pd.crosstab(
+    customer_summary['age_group'],
+    customer_summary['customer_segment'],
+    margins=True
+)
+print(crosstab_age_segment)
+print("====================================================================================================================")
+
+print("Summary Statistics by Multiple Dimensions")
+print("Revenue Statistics by Category and Payment Method:")
+multi_group_summary = df.groupby(['category', 'payment_method'])['final_amount'].agg([
+    ('count', 'count'),
+    ('total_revenue', 'sum'),
+    ('avg_revenue', 'mean'),
+    ('min_revenue', 'min'),
+    ('max_revenue', 'max')
+]).round(2) # type: ignore
+print(multi_group_summary)
+print("====================================================================================================================")
+
+print("Customer Behavior by Age Group and Weekend Status:")
+behavior_summary = df.groupby(['age_group', 'is_weekend']).agg({
+    'transaction_id': 'count',
+    'final_amount': ['sum', 'mean']
+}).round(2)
+behavior_summary.columns = ['num_transactions', 'total_spent', 'avg_transaction_value']
+print(behavior_summary)
+print("====================================================================================================================")
+
+
+
+
+# Task 3: End
+print("====================== TASK 3 END ======================")
