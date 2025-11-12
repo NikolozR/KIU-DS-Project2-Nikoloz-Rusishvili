@@ -23,18 +23,18 @@ This project demonstrates proficiency in data manipulation and analysis using Pa
 
 ```
 KIU-DS-Project2-Nikoloz-Rusishvili/
-├── Project2_Nikoloz_Rusishvili.py    # Main Python script
+├── Project2_Nikoloz_Rusishvili.py
 ├── data/
-│   ├── original/                      # Original datasets
+│   ├── original/                    
 │   │   ├── customers.csv
 │   │   ├── products.csv
 │   │   └── transactions.csv
-│   └── cleaned/                       # Cleaned datasets
+│   └── cleaned/             
 │       ├── customers_clean.csv
 │       ├── products_clean.csv
 │       └── transactions_clean.csv
-├── README.md                          # This file
-└── requirements.txt                   # Python dependencies
+├── README.md                          
+└── requirements.txt
 ```
 
 ---
@@ -50,7 +50,7 @@ KIU-DS-Project2-Nikoloz-Rusishvili/
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/[your-username]/KIU-DS-Project2-Nikoloz-Rusishvili.git
+git clone https://github.com/NikolozR/KIU-DS-Project2-Nikoloz-Rusishvili.git
 cd KIU-DS-Project2-Nikoloz-Rusishvili
 ```
 
