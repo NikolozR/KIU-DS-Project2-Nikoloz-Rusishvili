@@ -164,3 +164,26 @@ print(customers_df.query("country == 'US' or country == 'USA'")['customer_id'].t
         For 'United States' case, 14 customer rows use "US" or "USA", specifically:
         ['C026', 'C084', 'C092', 'C102', 'C115', 'C125', 'C145', 'C146', 'C157', 'C166', 'C172', 'C176', 'C183', 'C115']
 '''
+
+# Products.csv
+print(products_df[products_df['price'].isnull()]['product_id'].tolist())
+print(products_df.query("price < 0")['product_id'].tolist())
+print(products_df[products_df['product_name'].str.startswith(' ')]['product_id'].to_list())
+print(products_df[products_df['category'].str.match(r'^[a-z]')]['product_id'].to_list())
+'''
+    1. Missing Values
+        There are 3 missing values in price column, specifically these products:
+        ['P006', 'P010', 'P037']
+    2. Negative Prices
+        There are 3 negative values in price column, specifically these products:
+        ['P005', 'P018', 'P030']
+    3. Unrealistic Stock Values
+        Possible unrealistic stock numbers are 11246, 11048, 5987, respectively these products:
+        ['P002', 'P045', 'P050']  
+    4. Whitespace around product names:
+        There are 10 values under product_name column that has whitespace around them:
+        ['P016', 'P029', 'P032', 'P035', 'P036', 'P037', 'P038', 'P043', 'P048', 'P050']
+    5. Inconsistent category naming:
+        There are 8 values under the category column that has inconsistent naming (first letter is not capitalized):
+        ['P005', 'P014', 'P020', 'P032', 'P043', 'P046', 'P048', 'P050']
+'''
