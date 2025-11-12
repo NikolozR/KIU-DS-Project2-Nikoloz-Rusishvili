@@ -187,3 +187,27 @@ print(products_df[products_df['category'].str.match(r'^[a-z]')]['product_id'].to
         There are 8 values under the category column that has inconsistent naming (first letter is not capitalized):
         ['P005', 'P014', 'P020', 'P032', 'P043', 'P046', 'P048', 'P050']
 '''
+
+# Transactions.csv
+print(transactions_df[transactions_df['quantity'].isnull()]['transaction_id'].tolist())
+print(transactions_df[transactions_df.duplicated()]['transaction_id'].to_list())
+print(transactions_df[transactions_df['customer_id'].str[1:].astype(int) > 200]['transaction_id'].tolist())
+print(transactions_df[pd.to_datetime(transactions_df['transaction_date']) > pd.Timestamp.today()]['transaction_id'].tolist())
+print(transactions_df[transactions_df['payment_method'].str.isupper()]['transaction_id'].tolist())
+'''
+    1. Missing Values
+        There are 16 missing values under quantity column:
+        ['T040', 'T080', 'T089', 'T146', 'T151', 'T167', 'T217', 'T302', 'T327', 'T362', 'T364', 'T423', 'T448', 'T456', 'T482', 'T217']
+    2. Duplicated Rows
+        There are 6 duplicated rows
+        ['T045', 'T037', 'T060', 'T304', 'T021', 'T217']
+    3. Invalid customer_id references
+        There are 10 invalid references under customer_id column:
+        ['T031', 'T184', 'T240', 'T300', 'T316', 'T406', 'T424', 'T432', 'T457', 'T403']
+    4. Future Dates
+        There is only 1 future date:
+        ['T492']
+    5. Inconsistent payment_method naming:
+        There are 20 values under column payment_method where values are written all uppercase:
+        ['T015', 'T023', 'T102', 'T157', 'T178', 'T204', 'T228', 'T235', 'T255', 'T260', 'T274', 'T282', 'T290', 'T322', 'T344', 'T390', 'T428', 'T470', 'T478', 'T152']
+'''
