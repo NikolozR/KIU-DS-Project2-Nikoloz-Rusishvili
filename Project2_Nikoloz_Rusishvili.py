@@ -1,3 +1,10 @@
+"""
+Project 2: Pandas Data Manipulation
+Name: Nikoloz Rusishvili
+Student ID: I do not want to write it since this is public repo
+Date: 12.11.2025
+Honor Code: I certify this work is my own
+"""
 import pandas as pd
 import os
 import numpy as np
@@ -17,7 +24,7 @@ print(f"It should be 50 rows, there is {len(products_df)}. {"Valid" if 50 == len
 print("====================================================================================================================")
 
 transactions_df = pd.read_csv('data/original/transactions.csv')
-print("Validating Products CSV Reading...")
+print("Validating Transactions CSV Reading...")
 print(f"It should be 508 rows, there is {len(transactions_df)}. {"Valid" if 508 == len(transactions_df) else "Not Valid"}")
 print("====================================================================================================================")
 
