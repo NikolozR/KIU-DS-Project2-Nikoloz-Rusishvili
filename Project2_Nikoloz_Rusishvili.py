@@ -211,3 +211,55 @@ print(transactions_df[transactions_df['payment_method'].str.isupper()]['transact
         There are 20 values under column payment_method where values are written all uppercase:
         ['T015', 'T023', 'T102', 'T157', 'T178', 'T204', 'T228', 'T235', 'T255', 'T260', 'T274', 'T282', 'T290', 'T322', 'T344', 'T390', 'T428', 'T470', 'T478', 'T152']
 '''
+
+# Part B 
+
+# Copy dfs to start cleaning in different instance
+customers_df_cleaned = customers_df.copy()
+products_df_cleaned = products_df.copy()
+transactions_df_cleaned = transactions_df.copy()
+
+# Handle Missing Values
+customers_df_cleaned = customers_df_cleaned.dropna(subset=['email'])
+products_df_cleaned['price'] = products_df_cleaned.groupby('category')['price'].transform(lambda x:x.fillna(x.median()))
+transactions_df_cleaned['quantity'] = transactions_df_cleaned['quantity'].fillna(transactions_df_cleaned['quantity'].mode()[0])
+'''
+    Explanation:
+    For emails dropping is the best choice since email is often the unique identifier, so we can not even replace them and also having them left empty would also be problem
+    For price, since same category products have roughly same price --> we used median
+    For quantity, playing safe, fitting with most common value for discrete value column
+'''
+
+# Remove Duplicates
+customers_duplicate_removed = len(customers_df_cleaned[customers_df_cleaned.duplicated()].sum())
+# We do not need keep="first" because it does that by default
+customers_df_cleaned = customers_df_cleaned.drop_duplicates()
+products_duplicate_removed = len(products_df_cleaned[products_df_cleaned.duplicated()].sum())
+products_df_cleaned = products_df_cleaned.drop_duplicates()
+transactions_duplicate_removed = len(transactions_df_cleaned[transactions_df_cleaned.duplicated()].sum())
+transactions_df_cleaned = transactions_df_cleaned.drop_duplicates()
+print(f'Found {customers_duplicate_removed} duplicates for customers. \nFound {products_duplicate_removed} duplicates for products. \nFound {transactions_duplicate_removed} duplicates for transactions.')
+
+# Fix Data Types
+print(customers_df_cleaned['age'])
+inconsistent_age_mask = pd.to_numeric(customers_df_cleaned['age'], errors='coerce').isna()
+customers_df_cleaned.loc[inconsistent_age_mask, 'age'] = customers_df_cleaned.loc[inconsistent_age_mask, 'age'].str.split(' ').str[0]
+
+customers_df_cleaned['registration_date'] = pd.to_datetime(customers_df_cleaned['registration_date'])
+transactions_df_cleaned['transaction_date'] = pd.to_datetime(transactions_df_cleaned['transaction_date'])
+
+print(f"If everything is numeric in price this should be 0: {pd.to_numeric(transactions_df_cleaned['quantity'], errors='coerce').isna().sum()}")
+print(f"If everything is numeric in quantity this should be 0: {pd.to_numeric(products_df_cleaned['price'], errors='coerce').isna().sum()}")
+
+# Standardize Values
+customers_df_cleaned.loc[customers_df_cleaned.query('country == "US" or country == "USA"').index, 'country'] = "United States"
+products_df_cleaned['product_name'] = products_df_cleaned['product_name'].str.strip()
+customers_df_cleaned['email'] = customers_df_cleaned['email'].str.lower()
+
+# Handle Outliers & Invalid Data
+# Chose this kind of decision because absolute values are not far from other positive numbers, so we assume that negative sign was just technical mistake
+products_df_cleaned['price'] = products_df_cleaned['price'].abs()
+products_df_cleaned['stock'] = products_df_cleaned['stock'].clip(upper=500)
+transactions_df_cleaned = transactions_df_cleaned[~(transactions_df_cleaned['customer_id'].str[1:].astype(int) > 200)]
+transactions_df_cleaned = transactions_df_cleaned[~(pd.to_datetime(transactions_df['transaction_date']) > pd.Timestamp.today())]
+
