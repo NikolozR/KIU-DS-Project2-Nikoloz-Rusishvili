@@ -1,7 +1,8 @@
 import pandas as pd
+import os
 
 # Task 1: Start
-
+print("====================== TASK 1 START ======================")
 # Part A: Data Loading and Validation
 customers_df = pd.read_csv('data/original/customers.csv')
 print("Validating Customers CSV Reading...")
@@ -140,12 +141,15 @@ product_analysis()
 transaction_analysis()
 
 # Task 1: End
+print("====================== TASK 1 END ======================")
+
 
 # Task 2: Start
-
+print("====================== TASK 2 START ======================")
 # Part A: Identify Data Quality Issues
 
 # Customers.csv
+print("====================================================================================================================")
 print(customers_df[customers_df['email'].isna()]['customer_id'].tolist())
 print(customers_df[customers_df.duplicated()]['customer_id'].tolist())
 print(customers_df[pd.to_numeric(customers_df['age'], errors='coerce').isna()]['customer_id'].tolist())
@@ -164,8 +168,10 @@ print(customers_df.query("country == 'US' or country == 'USA'")['customer_id'].t
         For 'United States' case, 14 customer rows use "US" or "USA", specifically:
         ['C026', 'C084', 'C092', 'C102', 'C115', 'C125', 'C145', 'C146', 'C157', 'C166', 'C172', 'C176', 'C183', 'C115']
 '''
+print("====================================================================================================================")
 
 # Products.csv
+print("====================================================================================================================")
 print(products_df[products_df['price'].isnull()]['product_id'].tolist())
 print(products_df.query("price < 0")['product_id'].tolist())
 print(products_df[(products_df['product_name'].str.startswith(' ')) | (products_df['product_name'].str.endswith(' '))]['product_id'].to_list())
@@ -187,8 +193,10 @@ print(products_df[products_df['category'].str.match(r'^[a-z]')]['product_id'].to
         There are 8 values under the category column that has inconsistent naming (first letter is not capitalized):
         ['P005', 'P014', 'P020', 'P032', 'P043', 'P046', 'P048', 'P050']
 '''
+print("====================================================================================================================")
 
 # Transactions.csv
+print("====================================================================================================================")
 print(transactions_df[transactions_df['quantity'].isnull()]['transaction_id'].tolist())
 print(transactions_df[transactions_df.duplicated()]['transaction_id'].to_list())
 print(transactions_df[transactions_df['customer_id'].str[1:].astype(int) > 200]['transaction_id'].tolist())
@@ -211,7 +219,7 @@ print(transactions_df[transactions_df['payment_method'].str.isupper()]['transact
         There are 20 values under column payment_method where values are written all uppercase:
         ['T015', 'T023', 'T102', 'T157', 'T178', 'T204', 'T228', 'T235', 'T255', 'T260', 'T274', 'T282', 'T290', 'T322', 'T344', 'T390', 'T428', 'T470', 'T478', 'T152']
 '''
-
+print("====================================================================================================================")
 # Part B 
 
 # Copy dfs to start cleaning in different instance
@@ -238,20 +246,21 @@ products_duplicate_removed = products_df_cleaned.duplicated().sum()
 products_df_cleaned = products_df_cleaned.drop_duplicates()
 transactions_duplicate_removed = transactions_df_cleaned.duplicated().sum()
 transactions_df_cleaned = transactions_df_cleaned.drop_duplicates()
+print("====================================================================================================================")
 print(f'Found {customers_duplicate_removed} duplicates for customers. \nFound {products_duplicate_removed} duplicates for products. \nFound {transactions_duplicate_removed} duplicates for transactions.')
+print("====================================================================================================================")
 
 # Fix Data Types
-print(customers_df_cleaned['age'])
 inconsistent_age_mask = pd.to_numeric(customers_df_cleaned['age'], errors='coerce').isna()
 customers_df_cleaned.loc[inconsistent_age_mask, 'age'] = pd.to_numeric(customers_df_cleaned.loc[inconsistent_age_mask, 'age'].str.split(' ').str[0])
 customers_df_cleaned['age'] = pd.to_numeric(customers_df_cleaned['age'])
 
 customers_df_cleaned['registration_date'] = pd.to_datetime(customers_df_cleaned['registration_date'])
 transactions_df_cleaned['transaction_date'] = pd.to_datetime(transactions_df_cleaned['transaction_date'])
-
+print("====================================================================================================================")
 print(f"If everything is numeric in quantity this should be 0: {pd.to_numeric(transactions_df_cleaned['quantity'], errors='coerce').isna().sum()}")
 print(f"If everything is numeric in price this should be 0: {pd.to_numeric(products_df_cleaned['price'], errors='coerce').isna().sum()}")
-
+print("====================================================================================================================")
 # Standardize Values
 customers_df_cleaned.loc[customers_df_cleaned.query('country == "US" or country == "USA"').index, 'country'] = "United States"
 products_df_cleaned['product_name'] = products_df_cleaned['product_name'].str.strip()
@@ -267,3 +276,107 @@ transactions_df_cleaned = transactions_df_cleaned[~(pd.to_datetime(transactions_
 # It was not written in tasks but we need to do it:
 products_df_cleaned['category'] = products_df_cleaned['category'].str.capitalize()
 transactions_df_cleaned['payment_method'] = transactions_df_cleaned['payment_method'].str.title()
+
+
+# Part C
+
+# Create Cleaning Report
+cleaning_report = pd.DataFrame({
+    'Dataset': ['Customers', 'Products', 'Transactions'],
+    'Original_Rows': [len(customers_df), len(products_df), len(transactions_df)],
+    'Cleaned_Rows': [len(customers_df_cleaned), len(products_df_cleaned), len(transactions_df_cleaned)],
+    'Rows_Removed': [
+        len(customers_df) - len(customers_df_cleaned),
+        len(products_df) - len(products_df_cleaned),
+        len(transactions_df) - len(transactions_df_cleaned)
+    ],
+    'Missing_Before': [
+        customers_df.isnull().sum().sum(),
+        products_df.isnull().sum().sum(),
+        transactions_df.isnull().sum().sum()
+    ],
+    'Missing_After': [
+        customers_df_cleaned.isnull().sum().sum(),
+        products_df_cleaned.isnull().sum().sum(),
+        transactions_df_cleaned.isnull().sum().sum()
+    ],
+    'Duplicates_Removed': [
+        customers_duplicate_removed,
+        products_duplicate_removed,
+        transactions_duplicate_removed
+    ]
+})
+print("====================================================================================================================")
+print(cleaning_report)
+print("====================================================================================================================")
+
+
+# 2. Verify Data Quality
+
+# Missing Values Check
+print("====================================================================================================================")
+print("Customers - Missing values per column:")
+print(customers_df_cleaned.isnull().sum())
+print(f"Total missing values: {customers_df_cleaned.isnull().sum().sum()}")
+print("====================================================================================================================")
+print("Products - Missing values per column:")
+print(products_df_cleaned.isnull().sum())
+print(f"Total missing values: {products_df_cleaned.isnull().sum().sum()}")
+print("====================================================================================================================")
+print("Transactions - Missing values per column:")
+print(transactions_df_cleaned.isnull().sum())
+print(f"Total missing values: {transactions_df_cleaned.isnull().sum().sum()}")
+print("====================================================================================================================")
+# Duplicates Check
+print("====================================================================================================================")
+print(f"Customers duplicates remaining: {customers_df_cleaned.duplicated().sum()}")
+print("====================================================================================================================")
+print(f"Products duplicates remaining: {products_df_cleaned.duplicated().sum()}")
+print("====================================================================================================================")
+print(f"Transactions duplicates remaining: {transactions_df_cleaned.duplicated().sum()}")
+print("====================================================================================================================")
+# Data Types Verification
+print("====================================================================================================================")
+print("Customers data types:")
+print(customers_df_cleaned.dtypes)
+print("Products data types:")
+print(products_df_cleaned.dtypes)
+print("Transactions data types:")
+print(transactions_df_cleaned.dtypes)
+print("====================================================================================================================")
+# Values Ranges Verification
+print("Customers:")
+print(f"Age range: {customers_df_cleaned['age'].min()} - {customers_df_cleaned['age'].max()}")
+print(f"Countries: {customers_df_cleaned['country'].nunique()} unique countries")
+print(f"Registration date range: {customers_df_cleaned['registration_date'].min()} to {customers_df_cleaned['registration_date'].max()}")
+print("====================================================================================================================")
+print("Products:")
+print(f"  Price range: ${products_df_cleaned['price'].min():.2f} - ${products_df_cleaned['price'].max():.2f}")
+print(f"  Stock range: {products_df_cleaned['stock'].min()} - {products_df_cleaned['stock'].max()}")
+print(f"  Categories: {products_df_cleaned['category'].unique()}")
+print("====================================================================================================================")
+print("Transactions:")
+print(f"  Quantity range: {transactions_df_cleaned['quantity'].min()} - {transactions_df_cleaned['quantity'].max()}")
+print(f"  Transaction date range: {transactions_df_cleaned['transaction_date'].min()} to {transactions_df_cleaned['transaction_date'].max()}")
+print(f"  Payment methods: {transactions_df_cleaned['payment_method'].unique()}")
+print("====================================================================================================================")
+# Check if all customer_ids in transactions exist in customers
+invalid_customers = transactions_df_cleaned[~transactions_df_cleaned['customer_id'].isin(customers_df_cleaned['customer_id'])]['customer_id'].nunique()
+print(f"Invalid customer_id references in transactions: {invalid_customers}")
+# There are some invalid customer_ids because we removed some customers from customers_df because of email null value
+# We should keep this invalid references, it will be more interesting for the sake of Task 3
+print("====================================================================================================================")
+# Check if all product_ids in transactions exist in products
+invalid_products = transactions_df_cleaned[~transactions_df_cleaned['product_id'].isin(products_df_cleaned['product_id'])]['product_id'].nunique()
+print(f"Invalid product_id references in transactions: {invalid_products}")
+
+
+# Export Clean Data
+
+os.makedirs('data/cleaned', exist_ok=True)
+
+customers_df_cleaned.to_csv('data/cleaned/customers_clean.csv', index=False)
+products_df_cleaned.to_csv('data/cleaned/products_clean.csv', index=False)
+transactions_df_cleaned.to_csv('data/cleaned/transactions_clean.csv', index=False)
+# Task 2: End
+print("====================== TASK 2 END ======================")
