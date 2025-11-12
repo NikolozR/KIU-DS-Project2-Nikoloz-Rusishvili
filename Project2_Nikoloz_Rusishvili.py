@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import numpy as np
+
 
 # Task 1: Start
 print("====================== TASK 1 START ======================")
@@ -381,17 +383,16 @@ transactions_df_cleaned.to_csv('data/cleaned/transactions_clean.csv', index=Fals
 # Task 2: End
 print("====================== TASK 2 END ======================")
 
-# We need to drop duplicates again, because some invalid and 
-
 # Task 3: Start
 print("====================== TASK 3 START ======================")
 
 # Part A
 
 # Create Complete Transaction View
-transactions_customers_merged = pd.merge(transactions_df_cleaned, customers_df_cleaned, on='customer_id', how='left')
-df = pd.merge(transactions_customers_merged, products_df_cleaned, on='product_id', how='left')
-# Chose left joins because we need to have all transactions (At least that is what I understood from task)
+transactions_customers_merged = pd.merge(transactions_df_cleaned, customers_df_cleaned, on='customer_id', how='inner')
+df = pd.merge(transactions_customers_merged, products_df_cleaned, on='product_id', how='inner')
+# Chose inner join cause in proceeding tasks we need to use the data of customers, products and transactions, so left
+# right, outer will cause even more nan values that we do not want
 
 # Handle Merge Issues
 print("Transactions that are unmatched with product: ")
@@ -403,10 +404,56 @@ print("Transactions that are unmatched with customer: ")
 customer_unmatched = df[df['email'].isna()]
 print(customer_unmatched)
 print(f"Total: {len(customer_unmatched)}")
+# Of course no unmatched rows because we used inner join
 print("====================================================================================================================")
-print("No data loss because of Left join")
+print("Data will be lost because of inner join")
 print(f"Original Transaction row number: {len(transactions_df_cleaned)}")
 print(f"After Merge Transaction row number: {len(df)}")
+print(f"Total transactions number that we lost: {len(transactions_df_cleaned) - len(df)}")
 print("====================================================================================================================")
 
 
+# Part B
+
+# Financial Features
+df['total_amount'] = df['price'] * df['quantity']
+df['discount'] = np.where(df['quantity'] > 3, df['total_amount'] * 0.1, 0)
+df['final_amount'] = df['total_amount'] - df['discount']
+
+
+# Temporal Features
+df['transaction_month'] = df['transaction_date'].dt.month_name()
+df['transaction_day_of_week'] = df['transaction_date'].dt.day_name()
+df['customer_age_at_purchase'] = df['age'] + ((df['transaction_date'] - df['registration_date']).dt.days // 365)
+
+
+# Categorical Features
+total_spending = df.groupby('customer_id')['final_amount'].sum().reset_index()
+total_spending.rename(columns={'final_amount': 'total_spent'}, inplace=True)
+def assign_category(total_spent):
+    if total_spent > 1000:
+        return "High"
+    elif 500 <= total_spent <= 1000:
+        return "Medium"
+    else: return "Low"
+
+total_spending['customer_segment'] = total_spending['total_spent'].apply(assign_category)
+
+df = pd.merge(df, total_spending[['customer_id', 'customer_segment']], on="customer_id", how='left')
+
+def assign_age_group(age):
+    if 18 <= age <= 30:
+        return '18-30'
+    elif 31 <= age <= 45:
+        return '31-45'
+    elif 46 <= age <= 60:
+        return '46-60'
+    else: return '61+'
+    
+
+df['age_group'] = df['age'].apply(assign_age_group)
+
+def is_weekend(day):
+    return day == "Saturday" or day == 'Sunday'
+
+df['is_weekend'] = df['transaction_day_of_week'].apply(is_weekend)
